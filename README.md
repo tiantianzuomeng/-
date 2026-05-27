@@ -1,55 +1,51 @@
-# 🧠 GraphRAG 自动化知识图谱流水线
+# 🧠 个人知识库 —— GraphRAG 自动化知识管理流水线
 
-PDF 提取 → DeepSeek 提炼 → Obsidian 双链落盘 → MCP 知识检索，一体化闭环。
+**PDF / 研报 / 笔记 → 自动提炼 → Obsidian 双链网络 → MCP 知识检索**
 
-## 架构
+将你的每一份输入文件转化为 Obsidian 知识图谱中的结构化节点，自动维护全局实体库与知识中枢网络，并通过 MCP 协议让 LLM 客户端直接检索你的个人知识库。
 
-```
-                         ┌─────────────────┐
-                         │    PDF / MD 文件  │
-                         └────────┬────────┘
-                                  ▼
-                         ┌─────────────────┐
-                         │   pdf_parser.py  │  PyMuPDF 文本提取，坐标过滤页眉页脚
-                         └────────┬────────┘
-                                  ▼
-                         ┌─────────────────┐
-                         │ llm_processor.py │  DeepSeek API 提炼为结构化 Markdown
-                         │                  │  + 全局实体感知（消除同义词节点分裂）
-                         └────────┬────────┘
-                                  ▼
-                         ┌─────────────────┐
-                         │   storage.py     │  写入 Obsidian Vault
-                         │                  │  + 提取逻辑链追加 00_全局知识网络中枢.md
-                         └────────┬────────┘
-                                  ▼
-               ┌──────────────────────────────────┐
-               │          app.py (Streamlit)       │  ← 交互式前端入口
-               └──────────────────────────────────┘
-                                  ▼
-                         ┌─────────────────┐
-                         │ mcp_server.py    │  ← MCP 服务，供 LLM 检索 Vault
-                         │ /search_vault    │
-                         │ /read_node       │
-                         │ /get_linked_nodes │
-                         └─────────────────┘
-```
+---
 
-## 快速启动
+## ✨ 核心能力
+
+| 步骤 | 模块 | 功能 |
+|------|------|------|
+| 📥 输入 | `pdf_parser.py` | 支持 PDF、Markdown 文件上传 |
+| 🧠 提炼 | `llm_processor.py` | 调用 DeepSeek 提取核心逻辑、实体关系、关键论点 |
+| 💾 存储 | `storage.py` | 自动写入 Obsidian Vault，标题即文件名 |
+| 🕸️ 融合 | `storage.py` | 全局实体扫描消除同义词 + 图谱逻辑链追加中枢网络 |
+| 🔎 检索 | `mcp_server.py` | MCP 服务，供 Cursor / Claude Desktop 等检索知识库 |
+
+## 📂 文件清单
+
+| 文件 | 职责 |
+|------|------|
+| `pdf_parser.py` | PDF 文本提取（PyMuPDF，坐标过滤页眉页脚 + 纯图片页跳过） |
+| `llm_processor.py` | DeepSeek API 封装（tenacity 重试 + 全局实体词典动态注入） |
+| `storage.py` | Obsidian 写入 + 全局实体扫描 + 00_全局知识网络中枢管理 |
+| `app.py` | Streamlit 交互界面（全局实体预加载 + 中枢网络更新） |
+| `mcp_server.py` | FastMCP 服务（全文检索 / 读取节点 / 双链探测） |
+
+## 🚀 快速上手
 
 ```bash
+# 1. 安装依赖
 pip install streamlit PyMuPDF openai tenacity mcp
 
-# 设置 DeepSeek API Key，运行 Web 界面
+# 2. 启动 Web 界面
 streamlit run app.py
+# 侧边栏填入 DeepSeek API Key + Obsidian Vault 路径
+# 上传 PDF / Markdown → 一键处理 → 自动入库
 ```
 
-## MCP 服务（供 LLM 客户端调用）
+## 🔗 MCP 知识检索（供 LLM 客户端用）
+
+在 Cursor / Claude Desktop / OpenClaw 等支持 MCP 的客户端中配置：
 
 ```json
 {
     "mcpServers": {
-        "obsidian-vault": {
+        "personal-knowledge-base": {
             "command": "python",
             "args": ["path/to/mcp_server.py"],
             "env": {
@@ -60,25 +56,57 @@ streamlit run app.py
 }
 ```
 
-### MCP 工具
+配置后，LLM 可直接检索你的个人知识库：
 
-| 工具 | 功能 |
-|------|------|
+| MCP 工具 | 功能 |
+|----------|------|
 | `search_vault(query)` | 全局全文检索，返回匹配文件名 + 上下文片段 |
 | `read_node(entity_name)` | 读取指定知识节点的完整内容 |
-| `get_linked_nodes(entity_name)` | 提取节点中所有 `[[]]` 双链，返回链接实体列表 |
+| `get_linked_nodes(entity_name)` | 提取节点中所有 `[[]]` 双链，顺藤摸瓜 |
 
-## 全局知识融合
+## 🧩 全局知识融合机制
 
-- **全局实体感知**：每次处理新文档时，自动扫描 Vault 已有实体列表注入 DeepSeek 提示词，强制复用已有实体名，消除同义词节点。
-- **全局知识网络中枢**：每次落盘后自动提取 `图谱逻辑链` 段落，追加到 `00_全局知识网络中枢.md`，构建不断生长的知识网络。
+- **📋 全局实体词典**：每次处理新文档前，自动扫描 Vault 中所有已有文件名 + `[[]]` 双链，注入 DeepSeek 提示词，强制复用已有实体名，杜绝同义词节点分裂。
+- **🌐 知识网络中枢**：每篇新文档落盘后，自动提取「图谱逻辑链」段落，追加到 `00_全局知识网络中枢.md`，构建不断生长的全局知识网络。
+- **📎 批次内感知**：同一批上传的多个文件，后一个能感知前一个生成的新实体，确保同批文档互相关联。
 
-## 文件清单
+## ⚙️ 技术栈
 
-| 文件 | 职责 |
-|------|------|
-| `pdf_parser.py` | PDF 文本提取（坐标过滤 + 纯图片页跳过） |
-| `llm_processor.py` | DeepSeek API 封装（重试 + 全局实体注入） |
-| `storage.py` | Obsidian 写入 + 全局实体扫描 + 中枢更新 |
-| `app.py` | Streamlit 交互界面 |
-| `mcp_server.py` | MCP 服务（stdio 模式） |
+```
+Python 3.11+  |  Streamlit  |  PyMuPDF  |  OpenAI SDK  |  DeepSeek  |  Tenacity  |  FastMCP
+```
+
+## 🛤️ 工作流
+
+```
+上传 PDF/MD
+    │
+    ▼
+┌─────────────────────┐
+│ 阶段 0: 全局实体扫描  │  ← get_existing_entities()
+└─────────┬───────────┘
+          ▼
+┌─────────────────────┐
+│ 阶段 1: 文本提取      │  ← extract_text_from_pdf()
+└─────────┬───────────┘
+          ▼
+┌─────────────────────┐
+│ 阶段 2: AI 提炼      │  ← generate_graph_node( + 全局实体词典)
+│    · YAML Frontmatter│
+│    · 核心摘要        │
+│    · 图谱逻辑链      │
+│    · 关键论点        │
+└─────────┬───────────┘
+          ▼
+┌─────────────────────┐
+│ 阶段 3: 落盘 Vault   │  ← save_to_obsidian()
+│    · 新实体 → 注入   │
+│    · 下一文件感知     │
+└─────────┬───────────┘
+          ▼
+┌─────────────────────┐
+│ 阶段 4: 中枢更新     │  ← update_master_graph()
+│    00_全局知识网络    │
+│   中枢.md (追加)      │
+└─────────────────────┘
+```

@@ -1,5 +1,5 @@
 """
-Streamlit 前端 —— GraphRAG 全局知识图谱融合流水线入口。
+Streamlit 前端 —— 个人知识库 · GraphRAG 流水线入口。
 
 将 PDF/MD → 文本提取 → DeepSeek 提炼（含全局实体感知）→ Obsidian 落盘 → 中枢网络更新，串为一体。
 
@@ -31,13 +31,13 @@ from storage import (
 # 页面配置
 # ------------------------------------------------------------
 st.set_page_config(
-    page_title="GraphRAG 全局融合流水线",
+    page_title="个人知识库 · GraphRAG 流水线",
     page_icon="🧠",
     layout="wide",
 )
 
-st.title("🧠 GraphRAG 全局知识图谱融合流水线")
-st.caption("PDF 提取 → DeepSeek 提炼（全局实体感知）→ Obsidian 双链落盘 → 中枢网络更新，一键完成。")
+st.title("🧠 个人知识库 · 自动知识管理流水线")
+st.caption("PDF / 研报 / 笔记 → 自动提炼 → Obsidian 双链网络 → 中枢融合，一键完成。")
 
 # ------------------------------------------------------------
 # 会话状态初始化
@@ -70,7 +70,7 @@ with st.sidebar:
 
     st.divider()
 
-    st.markdown("### 🔗 流水线结构")
+    st.markdown("### 🔗 工作流")
     st.markdown(
         """
         0. 🌐 扫描 Vault → 提取全局实体词典
