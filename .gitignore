@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit secrets
+.streamlit/
+
+# Omit WorkBuddy system data
+.workbuddy/
+
+# Temp files
+*.tmp
+*.temp
+
+# Obsidian local test vault (if any)
+test_vault/
